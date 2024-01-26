@@ -56,12 +56,14 @@ html %>%
 html %>%
   html_nodes(xpath = "//table")
 
+
 # Here's a useful guide to xpath syntax: https://www.w3schools.com/xml/xpath_syntax.asp
 
 # Try selecting the first node of the table class, and assign it to a new object
 tab1 <- html %>%
   html_nodes(xpath = '//table[position()<2]')
-#html_nodes(xpath = '//table[position()=1]')
+#html_nodes(xpath = '/table[position()=1]')
+# there is no more elements than 1
 
 
 
@@ -89,17 +91,27 @@ body <- tab2[2] %>%
 
 # We now have two vectors, one with our categories and one with our data. We 
 # could use our R wrangling skills to shape these into a rectangular data.frame. 
+
 # There is an easier way though - the html_table() function. Let's trace back a 
-# few steps to our tab1 object...
+# few steps to our tab1e object...
 xml_children(tab1)
+# 当你使用 xml_children(tab1) 时，它将返回tab1 中每个节点的直接子节点
 
 # We can see that tab1 has three children. Our categories are stored in the 
 # "thead" node, and our data are in the "tbody" node. The html_table() function 
 # can parse this type of structure automatically. Try it out, and assign the 
 # result to an object.
-dat <- html_table(tab1, header = TRUE) #list 
+
+# html_table() 是 rvest 包中的函数，用于将HTML表格转换为数据框（data frame
+dat <- html_table(tab1, header = TRUE) #list  # why input  tab1 rather tab2
+# 单括号 [] 也可以用于从列表中提取元素，但它返回的是一个子列表，而不是元素本身。
 dat <- html_table(tab1, header = TRUE)[[1]] #extract the dataframe
+#这是选取数据库里第一列的值
+dat <- html_table(tab1, header = TRUE)[[1]][1]
+dat
+
 ?html_table
+?html_nodes
 
 
 
@@ -133,12 +145,17 @@ tab3 <- html2 %>%
 
 tab4 <- tab3 %>%
   html_nodes(xpath = '//thead | //tbody')
+tab4
 
-bat <- html_table(tab4, header = TRUE)[[1]]
+bat <- html_table(tab3, header = TRUE)[[1]]
 bat
+
+# Pipeline operator and filter function to select data that gonna be used
+bat %>%
+  filter(grepl("SR Tendulkar", Player))
 
 bat %>%
   filter(grepl("ENG|AUS", Player)) %>%
-  ggplot(aes(Balls, Wkts)) +
+  ggplot(aes(Runs, Ave)) +
   geom_text(aes(label = Player)) +
   geom_smooth(method = "lm")
