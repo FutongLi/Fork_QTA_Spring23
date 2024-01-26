@@ -47,7 +47,9 @@ html %>%
   html_nodes() # try searching for the table node
 
 html %>% 
-  html_nodes() # try searching using the class (add a dot)
+  html_nodes(".ds-table") # try searching using the class (add a dot)
+
+?html_nodes
 
 # xpaths
 # To search using xpath selectors, we need to add the xpath argument.
@@ -58,7 +60,10 @@ html %>%
 
 # Try selecting the first node of the table class, and assign it to a new object
 tab1 <- html %>%
-  html_nodes()
+  html_nodes(xpath = '//table[position()<2]')
+#html_nodes(xpath = '//table[position()=1]')
+
+
 
 # Let's look at the structure of this node. We could use the xml_structure() 
 # function, but the html is still too big. Try inspecting the object in the 
@@ -66,7 +71,11 @@ tab1 <- html %>%
 
 # We basically want "thead" and "tbody". How might we get those?
 tab2 <- tab1 %>%
-  html_nodes()
+  html_nodes(xpath = '//table/thead | //table/tbody')
+
+# this is equal to :
+tab2 <- tab1 %>%
+  html_nodes(xpath = '//thead | //tbody')
 
 # We now have an object containing 2 lists. With a bit of work we can extract 
 # the text we want as a vector:
@@ -88,7 +97,12 @@ xml_children(tab1)
 # "thead" node, and our data are in the "tbody" node. The html_table() function 
 # can parse this type of structure automatically. Try it out, and assign the 
 # result to an object.
-dat <- 
+dat <- html_table(tab1, header = TRUE) #list 
+dat <- html_table(tab1, header = TRUE)[[1]] #extract the dataframe
+?html_table
+
+
+
 
 dat %>%
   filter(grepl("ENG|AUS", Player)) %>%
@@ -103,3 +117,28 @@ dat %>%
 # Now that we've managed to do that for bowlers, try completing all the steps 
 # yourselves on a new html - top international batsmen!
 batsmen <- "https://stats.espncricinfo.com/ci/content/records/223646.html"
+
+html2 <- read_html(batsmen)
+html2
+
+
+html2 %>% 
+  html_nodes(".ds-table")
+
+html2 %>%
+  html_nodes(xpath = "//table")
+
+tab3 <- html2 %>%
+  html_nodes(xpath = "//table[position()=1]")
+
+tab4 <- tab3 %>%
+  html_nodes(xpath = '//thead | //tbody')
+
+bat <- html_table(tab4, header = TRUE)[[1]]
+bat
+
+bat %>%
+  filter(grepl("ENG|AUS", Player)) %>%
+  ggplot(aes(Balls, Wkts)) +
+  geom_text(aes(label = Player)) +
+  geom_smooth(method = "lm")
